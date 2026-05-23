@@ -297,6 +297,17 @@ class CustomerModel(CSVDatabase):
                 suggestions.append(customer)
         return suggestions[:5] # limit suggestions to top 5
 
+    def search_customers(self, query):
+        q = query.strip().lower()
+        if not q:
+            return []
+        results = []
+        for customer in self.read_all():
+            if q in customer["phone"].lower() or q in customer["name"].lower():
+                results.append(customer)
+        return results[:5]
+
+
     def add_or_update(self, phone, name, address):
         phone_normalized = "".join(filter(str.isdigit, phone))
         if len(phone_normalized) != 10:
@@ -460,3 +471,35 @@ class TransactionModel(CSVDatabase):
             "header": header,
             "items": items
         }
+
+    def get_customer_purchase_count(self, phone):
+        phone_normalized = "".join(filter(str.isdigit, phone))
+        if not phone_normalized:
+            return 0
+        txs = self.read_all()
+        return sum(1 for tx in txs if tx["customer_phone"] == phone_normalized)
+
+    def get_customer_total_spent(self, phone):
+        phone_normalized = "".join(filter(str.isdigit, phone))
+        if not phone_normalized:
+            return 0.0
+        txs = self.read_all()
+        return sum(float(tx["grand_total"]) for tx in txs if tx["customer_phone"] == phone_normalized)
+
+
+
+class CartModel(CSVDatabase):
+    """Manages active billing carts metadata in carts.csv."""
+    def __init__(self):
+        super().__init__("data/carts.csv", [
+            "cart_index", "invoice_id", "timestamp", "customer_phone", "customer_name", "customer_address", "discount"
+        ])
+
+
+class CartItemModel(CSVDatabase):
+    """Manages active billing cart items in cart_items.csv."""
+    def __init__(self):
+        super().__init__("data/cart_items.csv", [
+            "cart_index", "item_id", "quantity"
+        ])
+

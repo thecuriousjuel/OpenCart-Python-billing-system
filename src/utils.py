@@ -131,9 +131,9 @@ class PDFInvoiceGenerator:
                 
                 pdf.cell(35, 7, item["item_id"], border=1, fill=row_fill, align="C")
                 pdf.cell(75, 7, f" {item['name']}", border=1, fill=row_fill)
-                pdf.cell(25, 7, f"${float(item['price_at_sale']):.2f} ", border=1, fill=row_fill, align="R")
+                pdf.cell(25, 7, f"Rs. {float(item['price_at_sale']):.2f} ", border=1, fill=row_fill, align="R")
                 pdf.cell(20, 7, str(item["quantity"]), border=1, fill=row_fill, align="C")
-                pdf.cell(35, 7, f"${float(item['subtotal']):.2f} ", border=1, fill=row_fill, align="R")
+                pdf.cell(35, 7, f"Rs. {float(item['subtotal']):.2f} ", border=1, fill=row_fill, align="R")
                 pdf.ln(7)
                 row_fill = not row_fill # Alternate row coloring
                 
@@ -148,20 +148,20 @@ class PDFInvoiceGenerator:
             pdf.set_font("helvetica", "", 10)
             pdf.cell(120, 6, "")
             pdf.cell(35, 6, "Subtotal:", align="R")
-            pdf.cell(35, 6, f"${float(invoice_data['subtotal']):.2f} ", align="R")
+            pdf.cell(35, 6, f"Rs. {float(invoice_data['subtotal']):.2f} ", align="R")
             pdf.ln(6)
             
             discount_amount = float(invoice_data['subtotal']) * float(invoice_data['discount_percent']) / 100.0
             pdf.cell(120, 6, "")
             pdf.cell(35, 6, f"Discount ({float(invoice_data['discount_percent'])}%):", align="R")
-            pdf.cell(35, 6, f"-${discount_amount:.2f} ", align="R")
+            pdf.cell(35, 6, f"-Rs. {discount_amount:.2f} ", align="R")
             pdf.ln(6)
             
             pdf.set_font("helvetica", "B", 12)
             pdf.set_text_color(220, 38, 38) # Highlight grand total in red
             pdf.cell(120, 7, "")
             pdf.cell(35, 7, "Grand Total:", align="R")
-            pdf.cell(35, 7, f"${float(invoice_data['grand_total']):.2f} ", align="R")
+            pdf.cell(35, 7, f"Rs. {float(invoice_data['grand_total']):.2f} ", align="R")
             pdf.ln(12)
             
             # Terms and Footer Note
@@ -170,6 +170,8 @@ class PDFInvoiceGenerator:
             pdf.cell(0, 5, "Thank you for shopping with us!", align="C")
             pdf.ln(5)
             pdf.cell(0, 5, "Please retain this invoice for return or exchange claims within 7 days.", align="C")
+            pdf.ln(5)
+            pdf.cell(0, 5, "Made with <3 by Biswajit", align="C")
             
             # Save Output
             bills_dir = "bills"
