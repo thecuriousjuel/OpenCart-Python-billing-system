@@ -1,4 +1,22 @@
 # seed.py
+"""
+Database Seeder for the OpenCart Billing System.
+
+Run this script once to populate the data/ directory with a realistic
+set of sample records for development and demonstration purposes:
+  - 10 product categories
+  - 100 products (10 per category) with realistic prices and dates
+  - 50 fictional customers with unique phone numbers and addresses
+  - 100+ historical transactions spanning the last 60 days
+  - Pre-loaded cart sessions for 2 active terminals
+  - Low-stock items for testing stock warning indicators
+
+Warning: Running this script will WIPE all existing data in data/ and
+replace it with fresh generated records.
+
+Usage:
+    uv run python seed.py
+"""
 import os
 import csv
 import random
@@ -6,6 +24,7 @@ import json
 from datetime import datetime, timedelta
 
 def seed_database():
+    """Wipes the existing data directory and populates it with a full set of synthetic sample records."""
     print("Initializing database seeder...")
     
     # 1. Setup Directories

@@ -1,4 +1,17 @@
 # database.py
+"""
+CSV-based database models for the OpenCart Billing System.
+
+Each model class extends CSVDatabase and wraps a specific CSV file,
+providing domain-specific CRUD operations. All writes use an atomic
+write-replace pattern to prevent data corruption on failure:
+  - CategoryModel  → data/categories.csv
+  - InventoryModel → data/inventory.csv + data/deleted_inventory.csv
+  - CustomerModel  → data/customers.csv
+  - TransactionModel → data/transactions.csv + data/transaction_items.csv
+  - CartModel      → data/carts.csv
+  - CartItemModel  → data/cart_items.csv
+"""
 import os
 import csv
 import random
@@ -49,7 +62,7 @@ class CSVDatabase:
             raise e
 
     def append_row(self, row):
-        """Appends a single row to the CSV file safely."""
+        """Reads all rows, appends the given row dict, and writes the complete list back atomically."""
         rows = self.read_all()
         rows.append(row)
         self.write_all(rows)
@@ -61,9 +74,11 @@ class CategoryModel(CSVDatabase):
         super().__init__("data/categories.csv", ["category_name", "total_items"])
 
     def get_all(self):
+        """Returns all category records as a list of dicts."""
         return self.read_all()
 
     def add_category(self, name):
+        """Adds a new category by name, rejecting empty or duplicate names."""
         name = name.strip()
         if not name:
             return False, "Category name cannot be empty."
@@ -78,6 +93,7 @@ class CategoryModel(CSVDatabase):
         return True, f"Category '{name}' added successfully."
 
     def delete_category(self, name):
+        """Deletes a category by name if no active inventory items belong to it."""
         name = name.strip()
         # Verify if any active item uses this category
         from src.database import InventoryModel
@@ -96,7 +112,7 @@ class CategoryModel(CSVDatabase):
         return True, f"Category '{name}' deleted."
 
     def sync_counts(self, active_items):
-        """Recalculates total_items count for each category based on active inventory."""
+        """Recalculates and persists the total_items count per category based on the active inventory list."""
         counts = {}
         for item in active_items:
             cat = item["category"]
@@ -119,14 +135,17 @@ class InventoryModel(CSVDatabase):
         self.deleted_db = CSVDatabase("data/deleted_inventory.csv", self.headers)
 
     def get_all(self):
+        """Returns all active (non-deleted) inventory items."""
         return self.read_all()
 
     def get_all_including_deleted(self):
+        """Returns all inventory items including those soft-deleted to the archive file."""
         active = self.get_all()
         deleted = self.deleted_db.read_all()
         return active + deleted
 
     def get_by_id(self, item_id):
+        """Looks up and returns a single item dict by item_id, searching active and deleted records."""
         all_items = self.get_all_including_deleted()
         for item in all_items:
             if item["item_id"] == item_id:
@@ -134,6 +153,7 @@ class InventoryModel(CSVDatabase):
         return None
 
     def generate_unique_id(self):
+        """Generates a random unique ITEM-XXXXXXXXXX identifier not already present in any record."""
         existing_ids = {r["item_id"] for r in self.get_all_including_deleted()}
         while True:
             new_id = f"ITEM-{''.join(random.choices('0123456789', k=10))}"
@@ -141,6 +161,7 @@ class InventoryModel(CSVDatabase):
                 return new_id
 
     def add_item(self, name, category, price, quantity, mfg_date, expiry_date):
+        """Validates inputs and appends a new product to the active inventory CSV."""
         name = name.strip()
         if not name:
             return False, "Item name cannot be empty."
@@ -190,6 +211,7 @@ class InventoryModel(CSVDatabase):
         return True, item_id
 
     def update_item(self, item_id, name, category, price, quantity, mfg_date, expiry_date):
+        """Validates inputs and updates an existing active inventory item in-place."""
         items = self.get_all()
         found_idx = -1
         for i, item in enumerate(items):
@@ -248,6 +270,7 @@ class InventoryModel(CSVDatabase):
         return True, "Item updated successfully."
 
     def delete_item(self, item_id):
+        """Moves an item from active inventory to the deleted archive (soft delete)."""
         items = self.get_all()
         item_to_delete = None
         new_items = []
@@ -272,6 +295,7 @@ class InventoryModel(CSVDatabase):
         return True, "Item deleted and archived successfully."
 
     def get_low_stock(self, threshold=5):
+        """Returns all active inventory items whose quantity is at or below the given threshold."""
         return [item for item in self.get_all() if int(item["quantity"]) <= threshold]
 
 
@@ -281,6 +305,7 @@ class CustomerModel(CSVDatabase):
         super().__init__("data/customers.csv", ["phone", "name", "address"])
 
     def get_by_phone(self, phone):
+        """Returns the customer record matching the given phone number (normalised to digits only)."""
         phone_normalized = "".join(filter(str.isdigit, phone))
         for customer in self.read_all():
             if customer["phone"] == phone_normalized:
@@ -288,6 +313,7 @@ class CustomerModel(CSVDatabase):
         return None
 
     def suggest_by_phone_prefix(self, prefix):
+        """Returns up to 5 customers whose phone number starts with the given digit prefix."""
         prefix_normalized = "".join(filter(str.isdigit, prefix))
         if not prefix_normalized:
             return []
@@ -298,6 +324,7 @@ class CustomerModel(CSVDatabase):
         return suggestions[:5] # limit suggestions to top 5
 
     def search_customers(self, query):
+        """Returns up to 5 customers whose name or phone contain the given search string."""
         q = query.strip().lower()
         if not q:
             return []
@@ -309,6 +336,7 @@ class CustomerModel(CSVDatabase):
 
 
     def add_or_update(self, phone, name, address):
+        """Inserts a new customer or updates an existing record matched by phone number."""
         phone_normalized = "".join(filter(str.isdigit, phone))
         if len(phone_normalized) != 10:
             return False, "Phone number must be exactly 10 digits."
@@ -349,6 +377,7 @@ class TransactionModel(CSVDatabase):
         ])
 
     def generate_invoice_id(self):
+        """Generates a random unique INVO-XXXXXXXXXX invoice identifier not already in the transactions file."""
         existing_invoices = {r["invoice_id"] for r in self.read_all()}
         while True:
             new_id = f"INVO-{''.join(random.choices('0123456789', k=10))}"
@@ -356,6 +385,7 @@ class TransactionModel(CSVDatabase):
                 return new_id
 
     def checkout(self, customer_phone, items_list, discount_percent):
+        """Executes an atomic checkout: validates stock, deducts inventory, writes invoice header and line items."""
         """
         Executes an atomic checkout:
         1. Validates inventory levels.
@@ -437,12 +467,14 @@ class TransactionModel(CSVDatabase):
         }
 
     def get_history(self):
+        """Returns all transactions sorted by timestamp descending (most recent first)."""
         # Return history sorted by timestamp descending
         history = self.read_all()
         history.sort(key=lambda x: x["timestamp"], reverse=True)
         return history
 
     def get_details(self, invoice_id):
+        """Fetches the full invoice detail dict including the header and all associated line items."""
         # Get header
         header = None
         for tx in self.read_all():
@@ -473,6 +505,7 @@ class TransactionModel(CSVDatabase):
         }
 
     def get_customer_purchase_count(self, phone):
+        """Counts and returns how many invoices are linked to the given customer phone number."""
         phone_normalized = "".join(filter(str.isdigit, phone))
         if not phone_normalized:
             return 0
@@ -480,6 +513,7 @@ class TransactionModel(CSVDatabase):
         return sum(1 for tx in txs if tx["customer_phone"] == phone_normalized)
 
     def get_customer_total_spent(self, phone):
+        """Sums and returns the total grand_total spend for all invoices linked to the given phone number."""
         phone_normalized = "".join(filter(str.isdigit, phone))
         if not phone_normalized:
             return 0.0
