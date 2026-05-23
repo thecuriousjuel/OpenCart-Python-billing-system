@@ -69,7 +69,7 @@ pip install uv
 
 ## Installation
 
-Clone the repository and install dependencies using `uv`:
+### Option A — Using `uv` (recommended)
 
 ```powershell
 git clone https://github.com/thecuriousjuel/OpenCart-Python-billing-system.git
@@ -77,22 +77,36 @@ cd OpenCart-Python-billing-system
 uv sync
 ```
 
-> Alternatively, install dependencies using pip directly:
-> ```powershell
-> pip install -r requirement.txt
-> ```
+### Option B — Using plain Python & pip
+
+```powershell
+git clone https://github.com/thecuriousjuel/OpenCart-Python-billing-system.git
+cd OpenCart-Python-billing-system
+python -m venv .venv
+.venv\Scripts\activate      # Windows
+# source .venv/bin/activate  # macOS / Linux
+pip install ttkbootstrap fpdf2
+```
+
+> The exact packages required are: `ttkbootstrap`, `fpdf2` (which pulls in `fonttools`, `pillow`, and `defusedxml` automatically).
 
 ---
 
 ## Seed the Database
 
-Before running the application for the first time, populate the database with realistic sample data (10 categories, 100 products, 50 customers, 100+ transactions, and pre-configured carts):
+Before running the application for the first time, populate the database with realistic sample data (10 categories, 100 products, 50 customers, 100+ transactions, and pre-configured carts).
 
+> ⚠️ **Warning:** Running the seeder will **wipe all existing data** in the `data/` folder and replace it with fresh sample records.
+
+**Using `uv`:**
 ```powershell
 uv run python seed.py
 ```
 
-> ⚠️ **Warning:** Running the seeder will **wipe all existing data** in the `data/` folder and replace it with fresh sample records.
+**Using plain Python** (with the virtual environment activated):
+```powershell
+python seed.py
+```
 
 The seeder creates:
 - **10 product categories** (Beverages, Snacks, Dairy, Bakery, Produce, Meat, Personal Care, Household, Stationery, Electronics)
@@ -106,10 +120,14 @@ The seeder creates:
 
 ## Run the Application
 
-Start the billing system GUI:
-
+**Using `uv`:**
 ```powershell
 uv run python main.py
+```
+
+**Using plain Python** (with the virtual environment activated):
+```powershell
+python main.py
 ```
 
 The application window will open maximized. Use the **left sidebar** or the **Navigate** menu to switch between pages.
@@ -120,8 +138,14 @@ The application window will open maximized. Use the **left sidebar** or the **Na
 
 Execute the test suite to verify all CSV database models are functioning correctly:
 
+**Using `uv`:**
 ```powershell
 uv run python -m unittest tests/test_backend.py
+```
+
+**Using plain Python** (with the virtual environment activated):
+```powershell
+python -m unittest tests/test_backend.py
 ```
 
 Expected output:
