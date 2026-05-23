@@ -24,6 +24,7 @@ OpenCart-Billing/
 ├── data/                   # Database & Configurations Folder
 │   ├── settings.json       # Persisted settings (e.g. chosen theme, etc.)
 │   ├── inventory.csv       # Inventory Items
+│   ├── deleted_inventory.csv# Soft-deleted inventory items archive
 │   ├── categories.csv      # Item Categories & Counts
 │   ├── customers.csv       # Customer Phone/Name Directory
 │   ├── transactions.csv    # Invoice Headers
@@ -50,6 +51,10 @@ Stores the items available for purchase.
 *   `date_added`: String. Format: `YYYY-MM-DD`.
 *   `mfg_date`: String. Format: `YYYY-MM-DD`.
 *   `expiry_date`: String. Format: `YYYY-MM-DD`.
+
+### 3. `data/deleted_inventory.csv`
+Stores the details of soft-deleted items to maintain referential integrity without cluttering active queries. Columns are identical to `inventory.csv`.
+*   `item_id`, `name`, `category`, `price`, `quantity`, `date_added`, `mfg_date`, `expiry_date`
 
 ### 3. `data/categories.csv`
 Stores item categories and caches the total count of items belonging to each category.
@@ -272,6 +277,7 @@ SETTINGS_FILE = "data/settings.json"
 # Initialize CSV Files with Headers if missing
 CSV_HEADERS = {
     "data/inventory.csv": ["item_id", "name", "category", "price", "quantity", "date_added", "mfg_date", "expiry_date"],
+    "data/deleted_inventory.csv": ["item_id", "name", "category", "price", "quantity", "date_added", "mfg_date", "expiry_date"],
     "data/categories.csv": ["category_name", "total_items"],
     "data/customers.csv": ["phone", "name", "address"],
     "data/transactions.csv": ["invoice_id", "timestamp", "customer_phone", "subtotal", "discount_percent", "grand_total"],
