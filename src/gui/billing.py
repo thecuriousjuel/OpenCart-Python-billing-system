@@ -37,7 +37,7 @@ class BillingPage(tb.Frame):
             btn = tb.Button(
                 top_frame, 
                 text=f"Cart {idx}", 
-                bootstyle="light-outline" if idx != 1 else "success",
+                bootstyle="secondary" if idx != 1 else "success",
                 command=lambda val=idx: self.switch_cart(val)
             )
             btn.pack(side="left", padx=5)
@@ -427,7 +427,7 @@ class BillingPage(tb.Frame):
             if idx == index:
                 btn.configure(bootstyle="success")
             else:
-                btn.configure(bootstyle="light-outline")
+                btn.configure(bootstyle="secondary")
                 
         # Load variables of new active cart
         cart = self.carts[index]

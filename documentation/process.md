@@ -25,7 +25,7 @@ On the first boot, the system will automatically create `data/`, `logs/`, and `b
 
 ## 2. Testing & Verification Guide
 
-All developers and AI models should perform the following manual and programmatic tests before submitting changes:
+All developers should perform the following manual and programmatic tests before submitting changes:
 
 ### A. Database Verification
 1.  Verify that adding a new item creates a row in `data/inventory.csv` with a unique `ITEM-` ID.

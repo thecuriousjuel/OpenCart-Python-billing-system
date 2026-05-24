@@ -1,6 +1,6 @@
 # OpenCart Python Billing System - Context & Architecture
 
-This document provides a high-level overview of the application context, architectural patterns, database models, and UI frame structures. It serves as a persistent context record for developers and AI models.
+This document provides a high-level overview of the application context, architectural patterns, database models, and UI frame structures.
 
 ## 1. System Overview
 The application is a full-screen desktop application for shopping malls, designed to help shopkeepers manage their inventory, maintain a multi-cart billing system, register customer details, generate and print PDF invoices, and log system operations.
