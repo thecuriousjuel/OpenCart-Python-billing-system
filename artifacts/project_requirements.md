@@ -34,12 +34,11 @@ CART
 OPERATIONS
 1. Use csv file handling to achieve this instead of SQL - peform CRUD operations on csv files.
 2. Create multiple csv files as required for inventory handling and transaction handling
-2. Any operation that the user will be performing will be logged to a logger file.
-3. The application has to be a full screen desktop application.
-4. Any kind of notification has to show in the bottom right corner.
-5. For any item added, updated, removed from the inventory the notification should be updated.
-6. For any item added, updated, removed from the cart the notification should be updated.
-7. When the bill is generated the notification should pop.
-8. Create proper folder structure to store the source code, the csv file database, the log folder for log files generated each day and a pdf folder for all the bills generated.
-9. The pdf file bill should contain the name of the application/software that we are building.
-Instead of building generate 5 UI pages of the application, like the homepage, menu page, cart page etc.
+3. Any operation that the user will be performing will be logged to a logger file.
+4. The application has to be a full screen desktop application.
+5. Any kind of notification has to show in the bottom right corner.
+6. For any item added, updated, removed from the inventory the notification should be updated.
+7. For any item added, updated, removed from the cart the notification should be updated.
+8. When the bill is generated the notification should pop.
+9. Create proper folder structure to store the source code, the csv file database, the log folder for log files generated each day and a pdf folder for all the bills generated.
+10. The pdf file bill should contain the name of the application/software that we are building.
